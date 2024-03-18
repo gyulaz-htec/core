@@ -133,6 +133,9 @@ Model::Init(const bool is_config_provided)
   }
 
 #ifdef TRITON_ENABLE_METRICS
+  LOG_INFO << "\n******************\nModel::Init() is called!"
+           << "\nModel Name: " << Name() << "\nModel Version: " << Version()
+           << "\n***************\n";
   MetricModelReporter::Create(
       Name(), Version(), METRIC_REPORTER_ID_UTILITY, ResponseCacheEnabled(),
       Config().metric_tags(), &reporter_);

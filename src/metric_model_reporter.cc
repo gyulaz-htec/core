@@ -108,6 +108,9 @@ MetricModelReporter::Create(
     const triton::common::MetricTagsMap& model_tags,
     std::shared_ptr<MetricModelReporter>* metric_model_reporter)
 {
+  LOG_INFO << "\n******************\nMetricModelReporter::Create() is "
+           << "called!\nmodel_name: " << model_name
+           << "\nmodel_version: " << model_version << "\n***************\n";
   static std::mutex mtx;
   static std::unordered_map<size_t, std::weak_ptr<MetricModelReporter>>
       reporter_map;

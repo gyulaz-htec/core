@@ -178,6 +178,10 @@ TritonModelInstance::TritonModelInstance(
 {
 #ifdef TRITON_ENABLE_METRICS
   if (Metrics::Enabled()) {
+    LOG_INFO << "\n******************\nTritonModelInstance::"
+                "TritonModelInstance() is "
+             << "called!"
+             << "\n***************\n";
     // Use an ID in the metric only for GPU instances. Otherwise use
     // METRIC_REPORTER_ID_CPU to indicate no device should be reported in the
     // metric.

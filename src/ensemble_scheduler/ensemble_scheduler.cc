@@ -1369,6 +1369,9 @@ EnsembleScheduler::EnsembleScheduler(
 
 #ifdef TRITON_ENABLE_METRICS
   if (Metrics::Enabled()) {
+    LOG_INFO << "\n******************\nEnsembleScheduler::EnsembleScheduler() is "
+           << "called!"
+           << "\n***************\n";
     // Ensemble scheduler doesn't currently support response cache at top level.
     MetricModelReporter::Create(
         config.name(), 1, METRIC_REPORTER_ID_CPU,
