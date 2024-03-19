@@ -110,9 +110,9 @@ MetricModelReporter::Create(
 {
   if (!model_name.empty()) {
     if (model_name.back() == '2') {
-      model_name.insert(0, "./models-repo-2::");
+      model_name = "./models-repo-2::" + model_name;
     } else if (model_name.back() == '1') {
-      model_name.insert(0, "./models-repo-1::");
+      model_name = "./models-repo-1::" + model_name;
     }
   }
   LOG_INFO << "\n******************\nMetricModelReporter::Create() is "
