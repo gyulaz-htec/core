@@ -117,7 +117,7 @@ MetricModelReporter::Create(
     }
   }
   LOG_INFO << "\n******************\nMetricModelReporter::Create() is "
-           << "called!\model_name_tmp: " << model_name_tmp
+           << "called!\nmodel_name_tmp: " << model_name_tmp
            << "\nmodel_version: " << model_version << "\n***************\n";
   static std::mutex mtx;
   static std::unordered_map<size_t, std::weak_ptr<MetricModelReporter>>
@@ -132,7 +132,7 @@ MetricModelReporter::Create(
   const auto& itr = reporter_map.find(hash_labels);
   if (itr != reporter_map.end()) {
     LOG_INFO << "\n******************\nif (itr != reporter_map.end()) {} is "
-             << "called!\model_name_tmp: " << model_name_tmp << "\n***************\n";
+             << "called!\nmodel_name_tmp: " << model_name_tmp << "\n***************\n";
     // Found in map. If the weak_ptr is still valid that means that
     // there are other models using the reporter and we just reuse that
     // same reporter. If the weak_ptr is not valid then we need to remove
@@ -141,7 +141,7 @@ MetricModelReporter::Create(
     if (*metric_model_reporter != nullptr) {
       LOG_INFO << "\n******************\nif (*metric_model_reporter != "
                   "nullptr) {} is "
-               << "called!\model_name_tmp: " << model_name_tmp
+               << "called!\nmodel_name_tmp: " << model_name_tmp
                << "\n***************\n";
       return Status::Success;
     }
