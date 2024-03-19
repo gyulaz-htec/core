@@ -108,6 +108,13 @@ MetricModelReporter::Create(
     const triton::common::MetricTagsMap& model_tags,
     std::shared_ptr<MetricModelReporter>* metric_model_reporter)
 {
+  if (!model_name.empty()) {
+    if (model_name.back() == '2') {
+      model_name.insert(0, "./models-repo-2::");
+    } else if (model_name.back() == '1') {
+      model_name.insert(0, "./models-repo-1::");
+    }
+  }
   LOG_INFO << "\n******************\nMetricModelReporter::Create() is "
            << "called!\nmodel_name: " << model_name
            << "\nmodel_version: " << model_version << "\n***************\n";
@@ -123,12 +130,18 @@ MetricModelReporter::Create(
 
   const auto& itr = reporter_map.find(hash_labels);
   if (itr != reporter_map.end()) {
+    LOG_INFO << "\n******************\nif (itr != reporter_map.end()) {} is "
+             << "called!\nmodel_name: " << model_name << "\n***************\n";
     // Found in map. If the weak_ptr is still valid that means that
     // there are other models using the reporter and we just reuse that
     // same reporter. If the weak_ptr is not valid then we need to remove
     // the weak_ptr from the map and create the reporter again.
     *metric_model_reporter = itr->second.lock();
     if (*metric_model_reporter != nullptr) {
+      LOG_INFO << "\n******************\nif (*metric_model_reporter != "
+                  "nullptr) {} is "
+               << "called!\nmodel_name: " << model_name
+               << "\n***************\n";
       return Status::Success;
     }
 
