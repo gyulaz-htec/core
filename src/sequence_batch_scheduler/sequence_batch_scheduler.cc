@@ -1,4 +1,4 @@
-// Copyright 2018-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+// Copyright 2018-2024, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions
@@ -92,6 +92,39 @@ CancelRequests(std::vector<std::unique_ptr<InferenceRequest>>&& requests)
     }
     // Respond the request as cancelled.
     InferenceRequest::RespondIfError(req, cancelled_status, true);
+  }
+}
+
+void
+AddToReadyBatcherSequenceSlots(
+    SequenceBatchScheduler::BatcherSequenceSlotPriorityQueue*
+        ready_batcher_seq_slots,
+    const SequenceBatchScheduler::BatcherSequenceSlot& seq_slot_to_add)
+{
+  // Do not double add an existing slot.
+  try {
+    ready_batcher_seq_slots->push(seq_slot_to_add);
+  }
+  catch (const std::invalid_argument& e) {
+    LOG_ERROR << "Should not print this! Error adding to ready batcher "
+                 "sequence slots. "
+              << e.what();
+    // Iterate over the ready batcher sequence slots and make sure the sequence
+    // slot to add can only be added once.
+    bool seq_slot_to_add_is_added = false;
+    SequenceBatchScheduler::BatcherSequenceSlotPriorityQueue
+        new_ready_batcher_seq_slots;
+    while (!ready_batcher_seq_slots->empty()) {
+      auto& ready_seq_slot = ready_batcher_seq_slots->top();
+      if (ready_seq_slot.seq_slot_ != seq_slot_to_add.seq_slot_) {
+        new_ready_batcher_seq_slots.push(ready_seq_slot);
+      } else if (!seq_slot_to_add_is_added) {
+        new_ready_batcher_seq_slots.push(ready_seq_slot);
+        seq_slot_to_add_is_added = true;
+      }
+      ready_batcher_seq_slots->pop();
+    }
+    ready_batcher_seq_slots->swap(new_ready_batcher_seq_slots);
   }
 }
 
@@ -199,16 +232,14 @@ SequenceBatchScheduler::Update(
   }
 
   // Erase pending removal sequence slots that are already at ready.
-  std::priority_queue<
-      BatcherSequenceSlot, std::vector<BatcherSequenceSlot>,
-      BatcherSequenceSlotCompare>
-      new_ready_batcher_seq_slots;
+  BatcherSequenceSlotPriorityQueue new_ready_batcher_seq_slots;
   while (!ready_batcher_seq_slots_.empty()) {
     auto& ready_seq_slot = ready_batcher_seq_slots_.top();
     if (pending_removal_seq_slots_.find(ready_seq_slot.model_instance_) ==
         pending_removal_seq_slots_.end()) {
       // The ready slot is not being removed.
-      new_ready_batcher_seq_slots.push(ready_seq_slot);
+      AddToReadyBatcherSequenceSlots(
+          &new_ready_batcher_seq_slots, ready_seq_slot);
     } else {
       // The ready slot is being removed, erase the slot.
       EraseBatcherSequenceSlot(ready_seq_slot);
@@ -315,7 +346,8 @@ SequenceBatchScheduler::CreateBatchers(
       // All sequence slots in the batcher are initially ready for a
       // new sequence.
       for (size_t b = 0; b < seq_slot_cnt_; ++b) {
-        ready_batcher_seq_slots_.push(
+        AddToReadyBatcherSequenceSlots(
+            &ready_batcher_seq_slots_,
             SequenceBatchScheduler::BatcherSequenceSlot(instance.get(), b));
       }
     }
@@ -971,7 +1003,7 @@ SequenceBatchScheduler::ReleaseSequenceSlot(
                  << batcher_seq_slot.model_instance_->Name() << ", slot "
                  << batcher_seq_slot.seq_slot_;
 
-  ready_batcher_seq_slots_.push(batcher_seq_slot);
+  AddToReadyBatcherSequenceSlots(&ready_batcher_seq_slots_, batcher_seq_slot);
   return InferenceRequest::SequenceId();
 }
 
