@@ -1,4 +1,4 @@
-// Copyright 2018-2024, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+// Copyright 2018-2022, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions
@@ -98,20 +98,6 @@ class SequenceBatchScheduler : public Scheduler {
     TritonModelInstance* model_instance_;
     uint32_t seq_slot_;
   };
-  struct BatcherSequenceSlotCompare {
-    bool operator()(
-        const BatcherSequenceSlot& a, const BatcherSequenceSlot& b) const
-    {
-      if (a.seq_slot_ == b.seq_slot_) {
-        throw std::invalid_argument(
-            "BatcherSequenceSlot a should not equal to b.");
-      }
-      return a.seq_slot_ > b.seq_slot_;
-    }
-  };
-  using BatcherSequenceSlotPriorityQueue = std::priority_queue<
-      BatcherSequenceSlot, std::vector<BatcherSequenceSlot>,
-      BatcherSequenceSlotCompare>;
 
   // Fill a sequence slot with a sequence from the backlog or show
   // that the sequence slot is no longer being used.
@@ -164,6 +150,14 @@ class SequenceBatchScheduler : public Scheduler {
   Status GenerateInitialStateData(
       const inference::ModelSequenceBatching_InitialState& initial_state,
       const inference::ModelSequenceBatching_State& state, TritonModel* model);
+
+  struct BatcherSequenceSlotCompare {
+    bool operator()(
+        const BatcherSequenceSlot& a, const BatcherSequenceSlot& b) const
+    {
+      return a.seq_slot_ > b.seq_slot_;
+    }
+  };
 
   // Create a batcher for each of the provided instances.
   Status CreateBatchers(
@@ -266,7 +260,10 @@ class SequenceBatchScheduler : public Scheduler {
   // sequence. Ordered from lowest sequence-slot-number to highest so
   // that all batchers grow at the same rate and attempt to remain as
   // small as possible.
-  BatcherSequenceSlotPriorityQueue ready_batcher_seq_slots_;
+  std::priority_queue<
+      BatcherSequenceSlot, std::vector<BatcherSequenceSlot>,
+      BatcherSequenceSlotCompare>
+      ready_batcher_seq_slots_;
 
   // For each correlation ID the most recently seen timestamp, in
   // microseconds, for a request using that correlation ID.
