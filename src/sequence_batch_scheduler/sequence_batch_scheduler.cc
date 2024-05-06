@@ -881,26 +881,10 @@ SequenceBatchScheduler::ReleaseSequenceSlot(
     const BatcherSequenceSlot& batcher_seq_slot,
     std::deque<std::unique_ptr<InferenceRequest>>* requests)
 {
-  LOG_VERBOSE(1) << "Releasing slot in batcher "
-                 << batcher_seq_slot.model_instance_->Name() << ", slot "
-                 << batcher_seq_slot.seq_slot_;
-
   std::unique_lock<std::mutex> lock(mu_);
 
   // If there are any remaining requests on the releasing sequence slot, those
   // requests will be cancelled.
-  if (!requests->empty() && requests->front()) {
-    const auto& corr_id = requests->front()->CorrelationId();
-    // Clean up the correlation id to sequence slot mapping, to avoid the reaper
-    // from trying to release the same slot again on this instance of the
-    // correlation id.
-    sequence_to_batcherseqslot_map_.erase(corr_id);
-    // Clean up the correlation id to sequence timeout timestamp mapping, to
-    // avoid removal of a newer sequence from the backlog upon previous timeout
-    // if the same id is re-used by the newer sequence.
-    correlation_id_timestamps_.erase(corr_id);
-  }
-  // Cancel any remaining requests.
   MarkRequestsCancelled(requests);
 
   // If the instance behind the slot is pending to be removed, do not add the
