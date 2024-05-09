@@ -91,7 +91,7 @@ struct TRITONSERVER_MetricFamily;
 ///   }
 ///
 #define TRITONSERVER_API_VERSION_MAJOR 1
-#define TRITONSERVER_API_VERSION_MINOR 30
+#define TRITONSERVER_API_VERSION_MINOR 31
 
 /// Get the TRITONBACKEND API version supported by the Triton shared
 /// library. This value can be compared against the
@@ -787,16 +787,6 @@ TRITONSERVER_DECLSPEC struct TRITONSERVER_Error* TRITONSERVER_InferenceTraceNew(
     TRITONSERVER_InferenceTraceLevel level, uint64_t parent_id,
     TRITONSERVER_InferenceTraceActivityFn_t activity_fn,
     TRITONSERVER_InferenceTraceReleaseFn_t release_fn, void* trace_userp);
-
-/// Get the name associated with a trace. The caller does
-/// not own the returned string and must not modify or delete it. The
-/// lifetime of the returned string extends only as long as 'trace'.
-///
-/// \param trace The trace.
-/// \param trace_name Returns the name associated with the trace.
-/// \return a TRITONSERVER_Error indicating success or failure.
-TRITONSERVER_DECLSPEC TRITONSERVER_Error* TRITONSERVER_InferenceTraceName(
-    TRITONSERVER_InferenceTrace* trace, const char** trace_name);
 
 /// Create a new inference trace object. The caller takes ownership of
 /// the TRITONSERVER_InferenceTrace object and must call
