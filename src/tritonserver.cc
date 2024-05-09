@@ -1100,11 +1100,11 @@ TRITONSERVER_InferenceTraceSpawnChildTrace(
 }
 
 TRITONSERVER_InferenceTraceReportActivity(
-    TRITONSERVER_InferenceTrace* trace, uint64_t timestamp)
+    TRITONSERVER_InferenceTrace* trace, uint64_t timestamp, const char* name)
 {
 #ifdef TRITON_ENABLE_TRACING
   tc::InferenceTrace* ltrace = reinterpret_cast<tc::InferenceTrace*>(trace);
-  ltrace->Report(TRITONSERVER_TRACE_CUSTOM_ACTIVITY, timestamp);
+  ltrace->Report(TRITONSERVER_TRACE_CUSTOM_ACTIVITY, timestamp, name);
   return nullptr;  // Success
 #else
   return TRITONSERVER_ErrorNew(

@@ -186,10 +186,6 @@ TRITONSERVER_InferenceTraceRequestId()
 {
 }
 TRITONAPI_DECLSPEC void
-TRITONSERVER_InferenceTraceName()
-{
-}
-TRITONAPI_DECLSPEC void
 TRITONSERVER_InferenceTraceSpawnChildTrace()
 {
 }

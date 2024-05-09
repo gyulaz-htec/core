@@ -72,12 +72,13 @@ class InferenceTrace {
 
   // Report trace activity.
   void Report(
-      const TRITONSERVER_InferenceTraceActivity activity, uint64_t timestamp_ns)
+      const TRITONSERVER_InferenceTraceActivity activity, uint64_t timestamp_ns,
+      const char* activity_name = "")
   {
     if ((level_ & TRITONSERVER_TRACE_LEVEL_TIMESTAMPS) > 0) {
       activity_fn_(
           reinterpret_cast<TRITONSERVER_InferenceTrace*>(this), activity,
-          timestamp_ns, userp_);
+          timestamp_ns, userp_, activity_name);
     }
   }
 
