@@ -715,7 +715,9 @@ typedef enum tritonserver_traceactivity_enum {
   TRITONSERVER_TRACE_TENSOR_QUEUE_INPUT = 7,
   TRITONSERVER_TRACE_TENSOR_BACKEND_INPUT = 8,
   TRITONSERVER_TRACE_TENSOR_BACKEND_OUTPUT = 9,
-  TRITONSERVER_TRACE_CUSTOM_ACTIVITY = 10
+  TRITONSERVER_TRACE_CUSTOM_ACTIVITY = 10,
+  TRITONSERVER_TRACE_CUSTOM_ACTIVITY_START = 11,
+  TRITONSERVER_TRACE_CUSTOM_ACTIVITY_END = 12
 } TRITONSERVER_InferenceTraceActivity;
 
 /// Get the string representation of a trace activity. The returned
@@ -830,7 +832,8 @@ TRITONSERVER_InferenceTraceTensorNew(
 /// \return a TRITONSERVER_Error indicating success or failure.
 TRITONSERVER_DECLSPEC TRITONSERVER_Error*
 TRITONSERVER_InferenceTraceReportActivity(
-    TRITONSERVER_InferenceTrace* trace, uint64_t timestamp, const char* name);
+    TRITONSERVER_InferenceTrace* trace, uint64_t timestamp,
+    const char* activity_name, InferenceTraceActivityType type);
 
 /// Delete a trace object.
 ///

@@ -1106,6 +1106,7 @@ TRITONAPI_DECLSPEC void
 TRITONBACKEND_BackendAttributeAddPreferredInstanceGroup()
 {
 }
+
 TRITONAPI_DECLSPEC void
 TRITONSERVER_InferenceTraceReportActivity()
 {
