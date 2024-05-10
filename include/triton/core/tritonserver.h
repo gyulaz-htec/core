@@ -829,6 +829,7 @@ TRITONSERVER_InferenceTraceTensorNew(
 /// \param trace The trace object.
 /// \param timestamp The timestamp associated with the trace activity.
 /// \param name The trace activity name.
+/// \param type Type of activity : SINGLE, ACTIVITY_START, ACTIVITY_END
 /// \return a TRITONSERVER_Error indicating success or failure.
 TRITONSERVER_DECLSPEC TRITONSERVER_Error*
 TRITONSERVER_InferenceTraceReportActivity(
