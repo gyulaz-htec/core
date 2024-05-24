@@ -231,12 +231,16 @@ TritonModelInstance::CreateInstance(
     host_policy = &policy_it->second;
   }
 
+  LOG_INFO << "*** SetNumaConfigOnThread";
   RETURN_IF_ERROR(SetNumaConfigOnThread(*host_policy));
+  LOG_INFO << "*** ConstructAndInitializeInstance";
   auto err = ConstructAndInitializeInstance(
       model, name, signature, kind, device_id, profile_names, passive,
       host_policy_name, *host_policy, rate_limiter_config, secondary_devices,
       triton_model_instance);
+  LOG_INFO << "*** ResetNumaMemoryPolicy";
   RETURN_IF_ERROR(ResetNumaMemoryPolicy());
+  LOG_INFO << "*** Error check";
   RETURN_IF_ERROR(err);
 
   // When deploying on GPU, we want to make sure the GPU memory usage
@@ -245,11 +249,14 @@ TritonModelInstance::CreateInstance(
   // We check the usage after loading the instance to better enforcing
   // the limit. If we check before loading, we may create instance
   // that occupies the rest of available memory which against the purpose
+  LOG_INFO << "*** Kind check";
   if (kind == TRITONSERVER_INSTANCEGROUPKIND_GPU) {
+    LOG_INFO << "*** VerifyModelLoadGpuFraction";
     RETURN_IF_ERROR(VerifyModelLoadGpuFraction(
         name, kind, device_id, model->BackendConfigMap()));
   }
 
+  LOG_INFO << "*** Success";
   return Status::Success;
 }
 
@@ -269,10 +276,13 @@ TritonModelInstance::ConstructAndInitializeInstance(
       triton::common::TritonJson::ValueType::OBJECT);
   triton::common::TritonJson::Value policy_setting_json(
       host_policy_json, triton::common::TritonJson::ValueType::OBJECT);
+  LOG_INFO << "**** ConstructAndInitializeInstance::Checking "
+              "host policy";
   for (const auto& pr : host_policy) {
     RETURN_IF_ERROR(policy_setting_json.AddString(pr.first.c_str(), pr.second));
   }
 
+  LOG_INFO << "**** ConstructAndInitializeInstance::Updating host policy json";
   RETURN_IF_ERROR(host_policy_json.Add(
       host_policy_name.c_str(), std::move(policy_setting_json)));
   TritonServerMessage host_policy_message(host_policy_json);
@@ -307,19 +317,26 @@ TritonModelInstance::ConstructAndInitializeInstance(
 #ifdef _WIN32
     RETURN_IF_ERROR(slib->ResetLibraryDirectory());
 #endif
+    LOG_INFO
+        << "**** ConstructAndInitializeInstance::ModelInstanceInitFn error";
     RETURN_IF_TRITONSERVER_ERROR(err);
   }
 
   if (!passive) {
+    LOG_INFO << "**** ConstructAndInitializeInstance::Not passive";
+    LOG_INFO << "**** ConstructAndInitializeInstance::GenerateWarmupData";
     RETURN_IF_ERROR(local_instance->GenerateWarmupData());
+    LOG_INFO << "**** ConstructAndInitializeInstance::RegisterModelInstance";
     RETURN_IF_ERROR(model->Server()->GetRateLimiter()->RegisterModelInstance(
         local_instance.get(), rate_limiter_config));
+    LOG_INFO << "**** ConstructAndInitializeInstance::SetBackendThread";
     RETURN_IF_ERROR(local_instance->SetBackendThread(
         kind, device_id, model->DeviceBlocking()));
   }
 
   triton_model_instance->reset(local_instance.release());
 
+  LOG_INFO << "**** Success";
   return Status::Success;
 }
 

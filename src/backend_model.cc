@@ -631,7 +631,8 @@ TritonModel::PrepareInstances(
   for (auto& cr : creation_results) {
     auto lstatus = cr.get();
     if (!lstatus.IsOk()) {
-      LOG_ERROR << "ERROR: Failed to create instance: " << lstatus.Message();
+      LOG_ERROR << "ERROR from (core): Failed to create instance: "
+                << lstatus.Message();
       status = lstatus;
     }
   }
