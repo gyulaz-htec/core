@@ -384,6 +384,13 @@ if(${TRITON_ENABLE_MALI_GPU})
   )
 endif() # TRITON_ENABLE_MALI_GPU
 
+if(${TRITON_ENABLE_ROCM})
+  target_compile_definitions(
+    triton-core
+    PRIVATE TRITON_ENABLE_ROCM=1
+  )
+endif() # TRITON_ENABLE_ROCM
+
 if(${TRITON_ENABLE_METRICS})
   target_compile_definitions(
     triton-core

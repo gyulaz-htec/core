@@ -1602,7 +1602,7 @@ ValidateInstanceGroup(
                 " has kind KIND_MODEL but specifies one or more GPUs");
       }
     } else if (group.kind() == inference::ModelInstanceGroup::KIND_GPU) {
-#if !defined(TRITON_ENABLE_GPU) && !defined(TRITON_ENABLE_MALI_GPU)
+#if !defined(TRITON_ENABLE_GPU) && !defined(TRITON_ENABLE_MALI_GPU) && !defined(TRITON_ENABLE_ROCM)
       return Status(
           Status::Code::INVALID_ARG,
           "instance group " + group.name() + " of model " + config.name() +
@@ -1642,7 +1642,45 @@ ValidateInstanceGroup(
                   " are: " + supported_gpus_str);
         }
       }
-#endif  // ! TRITON_ENABLE_GPU && ! TRITON_ENABLE_MALI_GPU
+#elif defined(TRITON_ENABLE_ROCM)
+      if (group.gpus().size() == 0) {
+        // TODO: add this back after hipify is done
+        // if (supported_gpus.size() == 0) {
+        //   return Status(
+        //       Status::Code::INVALID_ARG,
+        //       "instance group " + group.name() + " of model " + config.name() +
+        //           " has kind KIND_GPU but no GPUs are available");
+        // } else {
+          return Status(
+              Status::Code::INVALID_ARG,
+              "instance group " + group.name() + " of model " + config.name() +
+                  " has kind KIND_GPU but specifies no GPUs");
+        // }
+      }
+
+      // TODO: add this back after hipify is done
+      // for (const int32_t gid : group.gpus()) {
+      //   if (supported_gpus.find(gid) == supported_gpus.end()) {
+      //     std::string supported_gpus_str;
+      //     for (const auto& cc : supported_gpus) {
+      //       if (!supported_gpus_str.empty()) {
+      //         supported_gpus_str += ", ";
+      //       }
+      //       supported_gpus_str += std::to_string(cc);
+      //     }
+      //     return Status(
+      //         Status::Code::INVALID_ARG,
+      //         "instance group " + group.name() + " of model " + config.name() +
+      //             " specifies invalid or unsupported gpu id " +
+      //             std::to_string(gid) +
+      //             ". GPUs with at least the minimum required CUDA compute "
+      //             "compatibility of " +
+      //             std::to_string(min_compute_capability) +
+      //             " are: " + supported_gpus_str);
+      //   }
+      // }
+#endif  // ! TRITON_ENABLE_GPU && ! TRITON_ENABLE_MALI_GPU && !
+        // TRITON_ENABLE_ROCM
     } else if (group.kind() == inference::ModelInstanceGroup::KIND_CPU) {
       if (group.gpus().size() > 0) {
         return Status(
