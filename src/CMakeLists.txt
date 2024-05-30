@@ -449,6 +449,17 @@ ENDFOREACH(p)
 
 find_library(RE2_LIBRARY NAMES re2)
 
+if(${TRITON_ENABLE_ROCM})
+  find_package(hip REQUIRED)
+  find_package(HIP)
+  enable_language(HIP)
+  target_link_libraries(
+    triton-core
+    PUBLIC
+      hip::host
+  )
+endif() # TRITON_ENABLE_ROCM
+
 target_link_libraries(
   triton-core
   PRIVATE
