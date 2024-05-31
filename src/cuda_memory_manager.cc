@@ -26,7 +26,7 @@
 //
 #include "cuda_memory_manager.h"
 
-#include <cnmem.h>
+// #include <cnmem.h>
 #include <string.h>
 
 #include <set>
@@ -36,13 +36,13 @@
 
 namespace {
 
-#define RETURN_IF_CNMEM_ERROR(S, MSG)                    \
+#define RETURN_IF_HIP_ERROR(S, MSG)                      \
   do {                                                   \
     auto status__ = (S);                                 \
-    if (status__ != CNMEM_STATUS_SUCCESS) {              \
+    if (status__ != hipSuccess) {                        \
       return Status(                                     \
           Status::Code::INTERNAL,                        \
-          (MSG) + ": " + cnmemGetErrorString(status__)); \
+          (MSG) + ": " + hipGetErrorString(status__));   \
     }                                                    \
   } while (false)
 
@@ -64,11 +64,11 @@ std::mutex CudaMemoryManager::instance_mu_;
 CudaMemoryManager::~CudaMemoryManager()
 {
   if (has_allocation_) {
-    auto status = cnmemFinalize();
-    if (status != CNMEM_STATUS_SUCCESS) {
-      LOG_ERROR << "Failed to finalize ROCM memory manager: [" << status << "] "
-                << cnmemGetErrorString(status);
-    }
+    // auto status = cnmemFinalize();
+    // if (status != CNMEM_STATUS_SUCCESS) {
+    //   LOG_ERROR << "Failed to finalize ROCM memory manager: [" << status << "] "
+    //             << cnmemGetErrorString(status);
+    // }
   }
 }
 
@@ -94,31 +94,31 @@ CudaMemoryManager::Create(const CudaMemoryManager::Options& options)
   auto status = GetSupportedGPUs(
       &supported_gpus, options.min_supported_compute_capability_);
   if (status.IsOk()) {
-    std::vector<cnmemDevice_t> devices;
-    for (auto gpu : supported_gpus) {
-      const auto it = options.memory_pool_byte_size_.find(gpu);
-      if ((it != options.memory_pool_byte_size_.end()) && (it->second != 0)) {
-        devices.emplace_back();
-        auto& device = devices.back();
-        memset(&device, 0, sizeof(device));
-        device.device = gpu;
-        device.size = it->second;
+    // std::vector<cnmemDevice_t> devices;
+    // for (auto gpu : supported_gpus) {
+    //   const auto it = options.memory_pool_byte_size_.find(gpu);
+    //   if ((it != options.memory_pool_byte_size_.end()) && (it->second != 0)) {
+    //     devices.emplace_back();
+    //     auto& device = devices.back();
+    //     memset(&device, 0, sizeof(device));
+    //     device.device = gpu;
+    //     device.size = it->second;
 
-        LOG_INFO << "ROCM memory pool is created on device " << device.device
-                 << " with size " << device.size;
-      }
-    }
+    //     LOG_INFO << "ROCM memory pool is created on device " << device.device
+    //              << " with size " << device.size;
+    //   }
+    // }
 
-    if (!devices.empty()) {
-      RETURN_IF_CNMEM_ERROR(
-          cnmemInit(devices.size(), devices.data(), CNMEM_FLAGS_CANNOT_GROW),
-          std::string("Failed to finalize ROCM memory manager"));
-    } else {
-      LOG_INFO << "ROCM memory pool disabled";
-    }
+    // if (!devices.empty()) {
+    //   RETURN_IF_HIP_ERROR(
+    //       cnmemInit(devices.size(), devices.data(), CNMEM_FLAGS_CANNOT_GROW),
+    //       std::string("Failed to finalize ROCM memory manager"));
+    // } else {
+    //   LOG_INFO << "ROCM memory pool disabled";
+    // }
 
-    // Use to finalize CNMeM properly when out of scope
-    instance_.reset(new CudaMemoryManager(!devices.empty()));
+    // // Use to finalize CNMeM properly when out of scope
+    instance_.reset(new CudaMemoryManager(!supported_gpus.empty()));
   } else {
     return Status(
         status.ErrorCode(),
@@ -150,13 +150,13 @@ CudaMemoryManager::Alloc(void** ptr, uint64_t size, int64_t device_id)
   }
 
   // Defer returning error to make sure the device is recovered
-  auto err = cnmemMalloc(ptr, size, nullptr);
+  auto err = hipMalloc(ptr, size);
 
   if (overridden) {
     hipSetDevice(current_device);
   }
 
-  RETURN_IF_CNMEM_ERROR(
+  RETURN_IF_HIP_ERROR(
       err, std::string("Failed to allocate ROCM memory with byte size ") +
                std::to_string(size) + " on GPU " + std::to_string(device_id));
   return Status::Success;
@@ -184,13 +184,13 @@ CudaMemoryManager::Free(void* ptr, int64_t device_id)
   }
 
   // Defer returning error to make sure the device is recovered
-  auto err = cnmemFree(ptr, nullptr);
+  auto err = hipFree(ptr);
 
   if (overridden) {
     hipSetDevice(current_device);
   }
 
-  RETURN_IF_CNMEM_ERROR(
+  RETURN_IF_HIP_ERROR(
       err, std::string("Failed to deallocate ROCM memory at address ") +
                PointerToString(ptr) + " on GPU " + std::to_string(device_id));
   return Status::Success;
