@@ -63,13 +63,15 @@ std::mutex CudaMemoryManager::instance_mu_;
 
 CudaMemoryManager::~CudaMemoryManager()
 {
+#ifndef(TRITON_ENABLE_ROCM)
   if (has_allocation_) {
-    // auto status = cnmemFinalize();
-    // if (status != CNMEM_STATUS_SUCCESS) {
-    //   LOG_ERROR << "Failed to finalize ROCM memory manager: [" << status << "] "
-    //             << cnmemGetErrorString(status);
-    // }
+    auto status = cnmemFinalize();
+    if (status != CNMEM_STATUS_SUCCESS) {
+      LOG_ERROR << "Failed to finalize ROCM memory manager: [" << status << "] "
+                << cnmemGetErrorString(status);
+    }
   }
+#endif
 }
 
 void
@@ -94,30 +96,32 @@ CudaMemoryManager::Create(const CudaMemoryManager::Options& options)
   auto status = GetSupportedGPUs(
       &supported_gpus, options.min_supported_compute_capability_);
   if (status.IsOk()) {
-    // std::vector<cnmemDevice_t> devices;
-    // for (auto gpu : supported_gpus) {
-    //   const auto it = options.memory_pool_byte_size_.find(gpu);
-    //   if ((it != options.memory_pool_byte_size_.end()) && (it->second != 0)) {
-    //     devices.emplace_back();
-    //     auto& device = devices.back();
-    //     memset(&device, 0, sizeof(device));
-    //     device.device = gpu;
-    //     device.size = it->second;
+#ifndef(TRITON_ENABLE_ROCM)
+    std::vector<cnmemDevice_t> devices;
+    for (auto gpu : supported_gpus) {
+      const auto it = options.memory_pool_byte_size_.find(gpu);
+      if ((it != options.memory_pool_byte_size_.end()) && (it->second != 0)) {
+        devices.emplace_back();
+        auto& device = devices.back();
+        memset(&device, 0, sizeof(device));
+        device.device = gpu;
+        device.size = it->second;
 
-    //     LOG_INFO << "ROCM memory pool is created on device " << device.device
-    //              << " with size " << device.size;
-    //   }
-    // }
+        LOG_INFO << "ROCM memory pool is created on device " << device.device
+                 << " with size " << device.size;
+      }
+    }
 
-    // if (!devices.empty()) {
-    //   RETURN_IF_HIP_ERROR(
-    //       cnmemInit(devices.size(), devices.data(), CNMEM_FLAGS_CANNOT_GROW),
-    //       std::string("Failed to finalize ROCM memory manager"));
-    // } else {
-    //   LOG_INFO << "ROCM memory pool disabled";
-    // }
+    if (!devices.empty()) {
+      RETURN_IF_HIP_ERROR(
+          cnmemInit(devices.size(), devices.data(), CNMEM_FLAGS_CANNOT_GROW),
+          std::string("Failed to finalize ROCM memory manager"));
+    } else {
+      LOG_INFO << "ROCM memory pool disabled";
+    }
+#endif
 
-    // // Use to finalize CNMeM properly when out of scope
+    // Use to finalize CNMeM properly when out of scope
     instance_.reset(new CudaMemoryManager(!supported_gpus.empty()));
   } else {
     return Status(
