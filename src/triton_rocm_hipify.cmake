@@ -18,8 +18,8 @@ function(hipify src_files out_generated_files)
   message(STATUS "@@@ File list ${src_files}")
 
   foreach(f ${src_files})
-    message("@@@ Processing ${f}")
-    file(RELATIVE_PATH cuda_f_rel "${REPO_ROOT}" ${f})
+  set(cuda_f_rel "${REPO_ROOT}/src/${f}")
+  message("@@@ Processing ${cuda_f_rel}")
     string(REPLACE "cuda" "rocm" rocm_f_rel ${cuda_f_rel})
     set(f_out "${CMAKE_CURRENT_BINARY_DIR}/amdgpu/${rocm_f_rel}")
     add_custom_command(
