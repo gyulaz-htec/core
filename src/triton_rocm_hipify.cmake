@@ -13,7 +13,7 @@ endfunction()
 
 # cuda_dir must be relative to REPO_ROOT
 function(hipify src_files out_generated_files)
-  set(hipify_tool ${REPO_ROOT}/src/amd_hipify.py)
+  set(hipify_tool ${REPO_ROOT}/amd_hipify.py)
 
   message(STATUS "@@@ REPO_ROOT ${REPO_ROOT}")
   file(GLOB_RECURSE srcs CONFIGURE_DEPENDS
@@ -26,7 +26,7 @@ function(hipify src_files out_generated_files)
   message(STATUS "@@@ out_generated_files ${out_generated_files}")
 
   foreach(f ${src_files})
-    set(cuda_f_rel "${REPO_ROOT}/src/${f}")
+    set(cuda_f_rel "${REPO_ROOT}/${f}")
     message("@@@ Processing ${cuda_f_rel}")
     string(REPLACE "cuda" "rocm" rocm_f_rel ${cuda_f_rel})
     set(f_out "${CMAKE_CURRENT_BINARY_DIR}/amdgpu/${rocm_f_rel}")
