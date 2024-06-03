@@ -15,6 +15,7 @@ endfunction()
 function(hipify src_files out_generated_files)
   set(hipify_tool ${REPO_ROOT}/src/amd_hipify.py)
 
+  message(STATUS "@@@ hipify_tool ${hipify_tool}")
   message(STATUS "@@@ File list ${src_files}")
   message(STATUS "@@@ out_generated_files ${out_generated_files}")
 
