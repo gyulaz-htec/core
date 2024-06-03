@@ -30,7 +30,7 @@ function(hipify src_files out_generated_files)
     message("@@@ Processing ${cuda_f_rel}")
     # string(REPLACE "cuda" "rocm" rocm_f_rel ${cuda_f_rel})
     # set(f_out "${CMAKE_CURRENT_BINARY_DIR}/amdgpu/${rocm_f_rel}")
-    set(f_out "${f}")
+    set(f_out "${cuda_f_rel}")
     add_custom_command(
       OUTPUT ${f_out}
       COMMAND Python3::Interpreter ${hipify_tool}
