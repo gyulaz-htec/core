@@ -31,11 +31,11 @@
 
 namespace triton { namespace core {
 
-/// Get the ROCM stream priority for a given ModelPriority
+/// Get the CUDA stream priority for a given ModelPriority
 /// \param priority The inference::ModelOptimizationPolicy::ModelPriority
-/// priority. \param rocm_stream_priority Returns the ROCM stream priority.
+/// priority. \param cuda_stream_priority Returns the CUDA stream priority.
 /// \return The error status.
-int GetRocmStreamPriority(
+int GetCudaStreamPriority(
     inference::ModelOptimizationPolicy::ModelPriority priority);
 
 }}  // namespace triton::core
