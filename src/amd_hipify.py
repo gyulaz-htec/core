@@ -13,6 +13,14 @@ def hipify(hipify_perl_path, src_file_path, dst_file_path):
     # Run hipify-perl first, capture output
     s = subprocess.run([hipify_perl_path, "-roc", src_file_path], stdout=subprocess.PIPE, text=True, check=False).stdout
 
+    # cnmem subytitutions
+    s = s.replace("#include <cnmem.h>", "")
+    s = s.replace("RETURN_IF_CNMEM_ERROR", "RETURN_IF_HIP_ERROR")
+    s = s.replace("CNMEM_STATUS_SUCCESS", "hipSuccess")
+    s = s.replace("cnmemGetErrorString", "hipGetErrorString")
+    s = s.replace("cnmemMalloc(ptr, size, nullptr)", "hipMalloc(ptr, size)")
+    s = s.replace("cnmemFree(ptr, nullptr)", "hipFree(ptr)")
+
     # Additional exact-match replacements.
     # Order matters for all of the following replacements, reglardless of appearing in logical sections.
     s = s.replace("kCudaExecutionProvider", "kRocmExecutionProvider")
