@@ -231,6 +231,55 @@ if(${TRITON_ENABLE_ENSEMBLE})
   )
 endif() # TRITON_ENABLE_ENSEMBLE
 
+if(${TRITON_ENABLE_ROCM})
+  set(TRITON_ROCM_HOME /opt/rocm)
+
+  list(APPEND CMAKE_PREFIX_PATH /opt/rocm /opt/rocm/llvm $ENV{ROCM_PATH} $ENV{HIP_PATH})
+  list(APPEND CMAKE_PREFIX_PATH /opt/rocm/hcc /opt/rocm/hip /opt/rocm)
+
+  if (NOT CMAKE_HIP_COMPILER)
+    set(CMAKE_HIP_COMPILER "${TRITON_ROCM_HOME}/llvm/bin/clang++")
+  endif()
+
+  if (NOT CMAKE_HIP_ARCHITECTURES)
+    set(CMAKE_HIP_ARCHITECTURES "gfx906;gfx908;gfx90a;gfx1030;gfx1100;gfx1101;gfx940;gfx941;gfx942")
+  endif()
+
+  file(GLOB rocm_cmake_components ${TRITON_ROCM_HOME}/lib/cmake/*)
+  list(APPEND CMAKE_PREFIX_PATH ${rocm_cmake_components})
+
+  if (NOT TRITON_HIPIFY_PERL)
+    find_path(HIPIFY_PERL_PATH
+      NAMES hipify-perl
+      HINTS
+      ${TRITON_BUILD_ROCM_HOME}/bin
+      ${TRITON_BUILD_ROCM_HOME}/hip/bin)
+    if (HIPIFY_PERL_PATH-NOTFOUND)
+      MESSAGE(FATAL_ERROR "hipify-perl not found")
+    endif()
+    set(TRITON_HIPIFY_PERL ${HIPIFY_PERL_PATH}/hipify-perl)
+  endif() #TRITON_HIPIFY_PERL
+
+  include(triton_rocm_hipify.cmake)
+  set(REPO_ROOT ${PROJECT_SOURCE_DIR})
+  hipify(${SERVER_SRCS} triton_hipified_srcs)
+  hipify(${SERVER_HDRS} triton_hipified_hdrs)
+
+  add_custom_target(generated_hipified_files DEPENDS
+    ${triton_hipified_srcs}
+    ${triton_hipified_hdrs})
+
+  set(
+    SERVER_SRCS
+    ${triton_hipified_srcs}
+  )
+
+  set(
+    SERVER_HDRS
+    ${triton_hipified_hdrs}
+  )
+endif()
+
 add_library(
   triton-core SHARED
   ${SERVER_SRCS} ${SERVER_HDRS}
@@ -543,6 +592,6 @@ install(
 )
 
 # Currently unit tests do not build for windows...
-if (NOT WIN32)
+if ((NOT WIN32) AND (NOT ${TRITON_ENABLE_ROCM}))
   add_subdirectory(test test)
 endif() # NOT WIN32
