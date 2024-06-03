@@ -259,7 +259,7 @@ class Model {
   inference::ModelConfig config_;
 
  private:
-  // The minimum supported ROCM compute capability.
+  // The minimum supported CUDA compute capability.
   const double min_compute_capability_;
 
   // Version of the model.

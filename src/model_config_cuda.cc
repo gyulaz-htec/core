@@ -26,36 +26,36 @@
 
 #include "model_config_cuda.h"
 
-#include <hip/hip_runtime_api.h>
+#include <cuda_runtime_api.h>
 
 namespace triton { namespace core {
 
 int
-GetRocmStreamPriority(
+GetCudaStreamPriority(
     inference::ModelOptimizationPolicy::ModelPriority priority)
 {
   // Default priority is 0
-  int rocm_stream_priority = 0;
+  int cuda_stream_priority = 0;
 
   int min, max;
-  hipError_t cuerr = hipDeviceGetStreamPriorityRange(&min, &max);
-  if ((cuerr != hipErrorNoDevice) && (cuerr != hipSuccess)) {
+  cudaError_t cuerr = cudaDeviceGetStreamPriorityRange(&min, &max);
+  if ((cuerr != cudaErrorNoDevice) && (cuerr != cudaSuccess)) {
     return 0;
   }
 
   switch (priority) {
     case inference::ModelOptimizationPolicy::PRIORITY_MAX:
-      rocm_stream_priority = max;
+      cuda_stream_priority = max;
       break;
     case inference::ModelOptimizationPolicy::PRIORITY_MIN:
-      rocm_stream_priority = min;
+      cuda_stream_priority = min;
       break;
     default:
-      rocm_stream_priority = 0;
+      cuda_stream_priority = 0;
       break;
   }
 
-  return rocm_stream_priority;
+  return cuda_stream_priority;
 }
 
 }}  // namespace triton::core
