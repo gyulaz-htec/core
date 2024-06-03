@@ -15,6 +15,12 @@ endfunction()
 function(hipify src_files out_generated_files)
   set(hipify_tool ${REPO_ROOT}/src/amd_hipify.py)
 
+  message(STATUS "@@@ REPO_ROOT ${REPO_ROOT}")
+  file(GLOB_RECURSE srcs CONFIGURE_DEPENDS
+    "${REPO_ROOT}/*.h"
+    "${REPO_ROOT}/*.cc"
+  )
+  message(STATUS "@@@ srcs ${srcs}")
   message(STATUS "@@@ hipify_tool ${hipify_tool}")
   message(STATUS "@@@ File list ${src_files}")
   message(STATUS "@@@ out_generated_files ${out_generated_files}")
