@@ -28,16 +28,17 @@ function(hipify src_files out_generated_files)
   foreach(f ${src_files})
     set(cuda_f_rel "${REPO_ROOT}/${f}")
     message("@@@ Processing ${cuda_f_rel}")
-    string(REPLACE "cuda" "rocm" rocm_f_rel ${cuda_f_rel})
-    set(f_out "${CMAKE_CURRENT_BINARY_DIR}/amdgpu/${rocm_f_rel}")
+    # string(REPLACE "cuda" "rocm" rocm_f_rel ${cuda_f_rel})
+    # set(f_out "${CMAKE_CURRENT_BINARY_DIR}/amdgpu/${rocm_f_rel}")
+    set(f_out "${f}")
     add_custom_command(
       OUTPUT ${f_out}
       COMMAND Python3::Interpreter ${hipify_tool}
       --hipify_perl ${TRITON_HIPIFY_PERL}
-      ${f} -o ${f_out}
-      DEPENDS ${hipify_tool} ${f}
+      ${cuda_f_rel} -o ${f_out}
+      DEPENDS ${hipify_tool} ${cuda_f_rel}
       )
-    message(STATUS "@@@ Hipify: ${cuda_f_rel} -> amdgpu/${rocm_f_rel}")
+    message(STATUS "@@@ Hipify: ${cuda_f_rel} -> ${f_out}")
     list(APPEND generated_files ${f_out})
   endforeach()
 
