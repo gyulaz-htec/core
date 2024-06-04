@@ -14,7 +14,7 @@ def hipify(hipify_perl_path, src_file_path, dst_file_path):
     s = subprocess.run([hipify_perl_path, "-roc", src_file_path], stdout=subprocess.PIPE, text=True, check=False).stdout
 
     # cnmem subytitutions
-    s = s.replace("#include <cnmem.h>", "")
+    s = s.replace("#include <cnmem.h>", "// #include <cnmem.h>")
     s = s.replace("RETURN_IF_CNMEM_ERROR", "RETURN_IF_HIP_ERROR")
     s = s.replace("CNMEM_STATUS_SUCCESS", "hipSuccess")
     s = s.replace("cnmemGetErrorString", "hipGetErrorString")
