@@ -12,7 +12,7 @@ function(auto_set_source_files_hip_language)
 endfunction()
 
 # cuda_dir must be relative to REPO_ROOT
-function(hipify srcs in_excluded_file_patterns out_generated_cc_files out_generated_h_files)
+function(hipify srcs in_excluded_file_patterns out_generated_files)
   set(hipify_tool ${REPO_ROOT}/amd_hipify.py)
   # do exclusion
   set(excluded_file_patterns ${${in_excluded_file_patterns}})
@@ -30,11 +30,7 @@ function(hipify srcs in_excluded_file_patterns out_generated_cc_files out_genera
       COMMENT WARNING "Hipify: ${cuda_f_rel} -> amdgpu/${rocm_f_rel}"
       )
 
-    if(f MATCHES ".*\\.h")
-      list(APPEND generated_h_files ${f_out})
-    else()
-      list(APPEND generated_cc_files ${f_out})
-    endif()
+      list(APPEND generated_files ${f_out})
 
   endforeach()
 
@@ -43,10 +39,8 @@ function(hipify srcs in_excluded_file_patterns out_generated_cc_files out_genera
   "${CMAKE_CURRENT_BINARY_DIR}/amdgpu/*.cc"
   )
 
-  message("generated_srcs: ${generated_srcs}")
+  message("## generated_srcs: ${generated_srcs}")
 
-  set_source_files_properties(${generated_cc_files} PROPERTIES GENERATED TRUE)
-  set_source_files_properties(${generated_h_files} PROPERTIES GENERATED TRUE)
-  set(${out_generated_cc_files} ${generated_cc_files} PARENT_SCOPE)
-  set(${out_generated_h_files} ${generated_h_files} PARENT_SCOPE)
+  set_source_files_properties(${generated_files} PROPERTIES GENERATED TRUE)
+  set(${out_generated_files} ${generated_files} PARENT_SCOPE)
 endfunction()

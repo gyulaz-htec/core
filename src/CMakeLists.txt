@@ -262,8 +262,8 @@ if(${TRITON_ENABLE_ROCM})
 
   include(triton_rocm_hipify.cmake)
   set(REPO_ROOT ${PROJECT_SOURCE_DIR})
-  hipify("${SERVER_SRCS}" "" triton_hipified_srcs triton_hipified_hdrs)
-  hipify("${SERVER_HDRS}" "" triton_hipified_srcs triton_hipified_hdrs)
+  hipify("${SERVER_SRCS}" "" triton_hipified_srcs)
+  hipify("${SERVER_HDRS}" "" triton_hipified_hdrs)
 
   add_custom_target(generated_hipified_files DEPENDS
   ${triton_hipified_srcs}
