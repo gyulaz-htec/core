@@ -76,12 +76,12 @@ function(hipify srcs in_excluded_file_patterns out_generated_cc_files out_genera
  # endforeach()
  # list(REMOVE_ITEM srcs ${excluded_srcs})
 
-message(STATUS "File list ${srcs} from ${cuda_dir} ")
+# message(STATUS "File list ${srcs} from ${cuda_dir} ")
 message(STATUS "Project Root ${REPO_ROOT} ")
 
   foreach(f ${srcs})
     message("Processing ${f}")
-    file(RELATIVE_PATH cuda_f_rel "${REPO_ROOT}" ${f})
+    file(RELATIVE_PATH cuda_f_rel "${REPO_ROOT}" "${REPO_ROOT}/${f}")
     # string(REPLACE "cuda" "rocm" rocm_f_rel ${cuda_f_rel})
     set(f_out "${CMAKE_CURRENT_BINARY_DIR}/amdgpu/${cuda_f_rel}")
     add_custom_command(
