@@ -26,7 +26,9 @@
 //
 #include "cuda_memory_manager.h"
 
-// #include <cnmem.h>
+#ifndef TRITON_ENABLE_ROCM
+#include <cnmem.h>
+#endif
 #include <string.h>
 
 #include <set>
@@ -63,7 +65,7 @@ std::mutex CudaMemoryManager::instance_mu_;
 
 CudaMemoryManager::~CudaMemoryManager()
 {
-#ifndef(TRITON_ENABLE_ROCM)
+#ifndef TRITON_ENABLE_ROCM
   if (has_allocation_) {
     auto status = cnmemFinalize();
     if (status != CNMEM_STATUS_SUCCESS) {
@@ -96,7 +98,7 @@ CudaMemoryManager::Create(const CudaMemoryManager::Options& options)
   auto status = GetSupportedGPUs(
       &supported_gpus, options.min_supported_compute_capability_);
   if (status.IsOk()) {
-#ifndef(TRITON_ENABLE_ROCM)
+#ifndef TRITON_ENABLE_ROCM
     std::vector<cnmemDevice_t> devices;
     for (auto gpu : supported_gpus) {
       const auto it = options.memory_pool_byte_size_.find(gpu);
