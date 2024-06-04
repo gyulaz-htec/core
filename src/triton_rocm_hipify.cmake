@@ -38,6 +38,13 @@ function(hipify srcs in_excluded_file_patterns out_generated_cc_files out_genera
 
   endforeach()
 
+  file(GLOB_RECURSE generated_srcs CONFIGURE_DEPENDS
+  "${CMAKE_CURRENT_BINARY_DIR}/amdgpu/*.h"
+  "${CMAKE_CURRENT_BINARY_DIR}/amdgpu/*.cc"
+  )
+
+  message("generated_srcs: ${generated_srcs}")
+
   set_source_files_properties(${generated_cc_files} PROPERTIES GENERATED TRUE)
   set_source_files_properties(${generated_h_files} PROPERTIES GENERATED TRUE)
   set(${out_generated_cc_files} ${generated_cc_files} PARENT_SCOPE)
