@@ -20,14 +20,15 @@ function(hipify srcs in_excluded_file_patterns out_generated_files)
 
   foreach(f ${srcs})
     message("Processing ${f}")
-    set(f_out "${CMAKE_CURRENT_BINARY_DIR}/amdgpu/${f}")
+    file(RELATIVE_PATH cuda_f_rel "${REPO_ROOT}" "${REPO_ROOT}/${f}")
+    set(f_out "${CMAKE_CURRENT_BINARY_DIR}/amdgpu/${cuda_f_rel}")
     add_custom_command(
       OUTPUT ${f_out}
       COMMAND Python3::Interpreter ${hipify_tool}
       --hipify_perl ${TRITON_HIPIFY_PERL}
-      ${f} -o ${f_out}
+      ${cuda_f_rel} -o ${f_out}
       DEPENDS ${hipify_tool} ${f}
-      COMMENT WARNING "Hipify: ${cuda_f_rel} -> amdgpu/${rocm_f_rel}"
+      COMMENT WARNING "Hipify: ${cuda_f_rel} -> amdgpu/${cuda_f_rel}"
       )
 
       list(APPEND generated_files ${f_out})
