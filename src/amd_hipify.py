@@ -215,11 +215,10 @@ def hipify(hipify_perl_path, src_file_path, dst_file_path):
 
 
 if __name__ == "__main__":
-    print("*** Starting hipify main ")
     parser = argparse.ArgumentParser()
     parser.add_argument("--hipify_perl", required=True)
     parser.add_argument("--output", "-o", help="output file")
     parser.add_argument("src", help="src")
     args = parser.parse_args()
-    print("*** hipifying "+ str(args.src))
+    print("hipifying "+ str(args.src))
     hipify(args.hipify_perl, args.src, args.output)
