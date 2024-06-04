@@ -19,6 +19,7 @@ function(hipify src_files out_generated_files)
   file(GLOB_RECURSE srcs CONFIGURE_DEPENDS
     "${REPO_ROOT}/*.h"
     "${REPO_ROOT}/*.cc"
+    "${REPO_ROOT}/*.py"
   )
   message(STATUS "@@@ srcs ${srcs}")
   message(STATUS "@@@ hipify_tool ${hipify_tool}")
