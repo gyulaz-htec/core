@@ -13,13 +13,15 @@ endfunction()
 
 # cuda_dir must be relative to REPO_ROOT
 function(hipify src_files out_generated_files)
-  set(hipify_tool ${REPO_ROOT}/amd_hipify.py)
+  file(GLOB_RECURSE hipify_tool CONFIGURE_DEPENDS
+    "${REPO_ROOT}/*.py"
+  )
+  # set(hipify_tool "${REPO_ROOT}/amd_hipify.py")
 
   message(STATUS "@@@ REPO_ROOT ${REPO_ROOT}")
   file(GLOB_RECURSE srcs CONFIGURE_DEPENDS
     "${REPO_ROOT}/*.h"
     "${REPO_ROOT}/*.cc"
-    "${REPO_ROOT}/*.py"
   )
   message(STATUS "@@@ srcs ${srcs}")
   message(STATUS "@@@ hipify_tool ${hipify_tool}")
