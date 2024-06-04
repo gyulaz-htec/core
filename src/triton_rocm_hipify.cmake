@@ -24,7 +24,6 @@ function(hipify src_files out_generated_files)
   message(STATUS "@@@ srcs ${srcs}")
   message(STATUS "@@@ hipify_tool ${hipify_tool}")
   message(STATUS "@@@ File list ${src_files}")
-  message(STATUS "@@@ out_generated_files ${out_generated_files}")
 
   foreach(f ${src_files})
     set(cuda_f_rel "${REPO_ROOT}/${f}")
@@ -33,12 +32,12 @@ function(hipify src_files out_generated_files)
     # set(f_out "${CMAKE_CURRENT_BINARY_DIR}/amdgpu/${rocm_f_rel}")
     set(f_out "${cuda_f_rel}")
     add_custom_command(
-      OUTPUT ${f_out}
-      COMMAND Python3::Interpreter ${hipify_tool}
-      --hipify_perl ${TRITON_HIPIFY_PERL}
-      ${cuda_f_rel} -o ${f_out}
-      DEPENDS ${hipify_tool} ${cuda_f_rel}
-      )
+    OUTPUT ${f_out}
+    COMMAND Python3::Interpreter ${hipify_tool}
+    --hipify_perl ${TRITON_HIPIFY_PERL}
+    ${cuda_f_rel} -o ${f_out}
+    DEPENDS ${hipify_tool} ${cuda_f_rel}
+    )
     message(STATUS "@@@ Hipify: ${cuda_f_rel} -> ${f_out}")
     list(APPEND generated_files ${f_out})
   endforeach()
@@ -46,4 +45,5 @@ function(hipify src_files out_generated_files)
   set_source_files_properties(${generated_files} PROPERTIES GENERATED TRUE)
   auto_set_source_files_hip_language(${generated_files})
   set(${out_generated_files} ${generated_files} PARENT_SCOPE)
+  message(STATUS "@@@ out_generated_files ${out_generated_files}")
 endfunction()
