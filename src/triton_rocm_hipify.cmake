@@ -28,7 +28,6 @@ function(hipify src_files out_generated_files)
   foreach(f ${src_files})
     set(cuda_f_rel "${REPO_ROOT}/${f}")
     message("@@@ Processing ${cuda_f_rel} ")
-    # string(REPLACE "cuda" "rocm" rocm_f_rel ${cuda_f_rel})
     set(f_out "${CMAKE_CURRENT_BINARY_DIR}/amdgpu/${cuda_f_rel}")
     # set(f_out "${cuda_f_rel}")
     add_custom_command(
@@ -41,6 +40,12 @@ function(hipify src_files out_generated_files)
     )
     list(APPEND generated_files ${f_out})
   endforeach()
+
+  file(GLOB_RECURSE generated_srcs CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_BINARY_DIR}/amdgpu/*.h"
+    "${CMAKE_CURRENT_BINARY_DIR}/amdgpu/*.cc"
+  )
+  message(STATUS "### Generated srcs: ${generated_srcs}")
 
   set_source_files_properties(${generated_files} PROPERTIES GENERATED TRUE)
   auto_set_source_files_hip_language(${generated_files})
