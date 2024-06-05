@@ -138,10 +138,13 @@ CudaMemoryManager::Create(const CudaMemoryManager::Options& options)
 Status
 CudaMemoryManager::Alloc(void** ptr, uint64_t size, int64_t device_id)
 {
+  LOG_INFO << "** CudaMemoryManager::Alloc enter";
   if (instance_ == nullptr) {
+    LOG_INFO << "** CudaMemoryManager has not been created";
     return Status(
         Status::Code::UNAVAILABLE, "CudaMemoryManager has not been created");
   } else if (!instance_->has_allocation_) {
+    LOG_INFO << "** CudaMemoryManager has no preallocated ROCM memory";
     return Status(
         Status::Code::UNAVAILABLE,
         "CudaMemoryManager has no preallocated ROCM memory");
@@ -166,6 +169,7 @@ CudaMemoryManager::Alloc(void** ptr, uint64_t size, int64_t device_id)
   RETURN_IF_HIP_ERROR(
       err, std::string("Failed to allocate ROCM memory with byte size ") +
                std::to_string(size) + " on GPU " + std::to_string(device_id));
+  LOG_INFO << "** CudaMemoryManager::Alloc success";
   return Status::Success;
 }
 
