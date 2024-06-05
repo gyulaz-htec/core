@@ -86,6 +86,7 @@ CudaMemoryManager::Reset()
 Status
 CudaMemoryManager::Create(const CudaMemoryManager::Options& options)
 {
+  LOG_INFO << "*** CudaMemoryManager::Create called";
   // Ensure thread-safe creation of ROCM memory pool
   std::lock_guard<std::mutex> lock(instance_mu_);
   if (instance_ != nullptr) {
