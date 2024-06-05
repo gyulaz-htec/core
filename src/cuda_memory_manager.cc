@@ -26,9 +26,7 @@
 //
 #include "cuda_memory_manager.h"
 
-#ifndef TRITON_ENABLE_ROCM
 #include <cnmem.h>
-#endif
 #include <string.h>
 
 #include <set>
@@ -38,13 +36,13 @@
 
 namespace {
 
-#define RETURN_IF_HIP_ERROR(S, MSG)                      \
+#define RETURN_IF_CNMEM_ERROR(S, MSG)                    \
   do {                                                   \
     auto status__ = (S);                                 \
-    if (status__ != hipSuccess) {                        \
+    if (status__ != CNMEM_STATUS_SUCCESS) {              \
       return Status(                                     \
           Status::Code::INTERNAL,                        \
-          (MSG) + ": " + hipGetErrorString(status__));   \
+          (MSG) + ": " + cnmemGetErrorString(status__)); \
     }                                                    \
   } while (false)
 
@@ -65,7 +63,6 @@ std::mutex CudaMemoryManager::instance_mu_;
 
 CudaMemoryManager::~CudaMemoryManager()
 {
-#ifndef TRITON_ENABLE_ROCM
   if (has_allocation_) {
     auto status = cnmemFinalize();
     if (status != CNMEM_STATUS_SUCCESS) {
@@ -73,7 +70,6 @@ CudaMemoryManager::~CudaMemoryManager()
                 << cnmemGetErrorString(status);
     }
   }
-#endif
 }
 
 void
@@ -86,11 +82,10 @@ CudaMemoryManager::Reset()
 Status
 CudaMemoryManager::Create(const CudaMemoryManager::Options& options)
 {
-  LOG_INFO << "*** CudaMemoryManager::Create called";
   // Ensure thread-safe creation of ROCM memory pool
   std::lock_guard<std::mutex> lock(instance_mu_);
   if (instance_ != nullptr) {
-    LOG_INFO << "*** New ROCM memory pools could not be created since they "
+    LOG_WARNING << "New ROCM memory pools could not be created since they "
                    "already exists";
     return Status::Success;
   }
@@ -99,7 +94,6 @@ CudaMemoryManager::Create(const CudaMemoryManager::Options& options)
   auto status = GetSupportedGPUs(
       &supported_gpus, options.min_supported_compute_capability_);
   if (status.IsOk()) {
-#ifndef TRITON_ENABLE_ROCM
     std::vector<cnmemDevice_t> devices;
     for (auto gpu : supported_gpus) {
       const auto it = options.memory_pool_byte_size_.find(gpu);
@@ -116,16 +110,15 @@ CudaMemoryManager::Create(const CudaMemoryManager::Options& options)
     }
 
     if (!devices.empty()) {
-      RETURN_IF_HIP_ERROR(
+      RETURN_IF_CNMEM_ERROR(
           cnmemInit(devices.size(), devices.data(), CNMEM_FLAGS_CANNOT_GROW),
           std::string("Failed to finalize ROCM memory manager"));
     } else {
-      LOG_INFO << "** ROCM memory pool disabled";
+      LOG_INFO << "ROCM memory pool disabled";
     }
-#endif
 
     // Use to finalize CNMeM properly when out of scope
-    instance_.reset(new CudaMemoryManager(!supported_gpus.empty()));
+    instance_.reset(new CudaMemoryManager(!devices.empty()));
   } else {
     return Status(
         status.ErrorCode(),
@@ -138,13 +131,10 @@ CudaMemoryManager::Create(const CudaMemoryManager::Options& options)
 Status
 CudaMemoryManager::Alloc(void** ptr, uint64_t size, int64_t device_id)
 {
-  LOG_INFO << "** CudaMemoryManager::Alloc enter";
   if (instance_ == nullptr) {
-    LOG_INFO << "** CudaMemoryManager has not been created";
     return Status(
         Status::Code::UNAVAILABLE, "CudaMemoryManager has not been created");
   } else if (!instance_->has_allocation_) {
-    LOG_INFO << "** CudaMemoryManager has no preallocated ROCM memory";
     return Status(
         Status::Code::UNAVAILABLE,
         "CudaMemoryManager has no preallocated ROCM memory");
@@ -160,16 +150,15 @@ CudaMemoryManager::Alloc(void** ptr, uint64_t size, int64_t device_id)
   }
 
   // Defer returning error to make sure the device is recovered
-  auto err = hipMalloc(ptr, size);
+  auto err = cnmemMalloc(ptr, size, nullptr);
 
   if (overridden) {
     hipSetDevice(current_device);
   }
 
-  RETURN_IF_HIP_ERROR(
+  RETURN_IF_CNMEM_ERROR(
       err, std::string("Failed to allocate ROCM memory with byte size ") +
                std::to_string(size) + " on GPU " + std::to_string(device_id));
-  LOG_INFO << "** CudaMemoryManager::Alloc success";
   return Status::Success;
 }
 
@@ -195,13 +184,13 @@ CudaMemoryManager::Free(void* ptr, int64_t device_id)
   }
 
   // Defer returning error to make sure the device is recovered
-  auto err = hipFree(ptr);
+  auto err = cnmemFree(ptr, nullptr);
 
   if (overridden) {
     hipSetDevice(current_device);
   }
 
-  RETURN_IF_HIP_ERROR(
+  RETURN_IF_CNMEM_ERROR(
       err, std::string("Failed to deallocate ROCM memory at address ") +
                PointerToString(ptr) + " on GPU " + std::to_string(device_id));
   return Status::Success;
