@@ -229,6 +229,8 @@ InferenceServer::Init()
   // server can still function properly
   if (!status.IsOk()) {
     LOG_INFO << "*** " << status.Message();
+  } else {
+    LOG_INFO << "*** Memory manager successfully created";
   }
 #endif  // TRITON_ENABLE_GPU
 
