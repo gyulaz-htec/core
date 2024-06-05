@@ -90,7 +90,7 @@ CudaMemoryManager::Create(const CudaMemoryManager::Options& options)
   // Ensure thread-safe creation of ROCM memory pool
   std::lock_guard<std::mutex> lock(instance_mu_);
   if (instance_ != nullptr) {
-    LOG_WARNING << "New ROCM memory pools could not be created since they "
+    LOG_INFO << "*** New ROCM memory pools could not be created since they "
                    "already exists";
     return Status::Success;
   }
@@ -120,7 +120,7 @@ CudaMemoryManager::Create(const CudaMemoryManager::Options& options)
           cnmemInit(devices.size(), devices.data(), CNMEM_FLAGS_CANNOT_GROW),
           std::string("Failed to finalize ROCM memory manager"));
     } else {
-      LOG_INFO << "ROCM memory pool disabled";
+      LOG_INFO << "** ROCM memory pool disabled";
     }
 #endif
 

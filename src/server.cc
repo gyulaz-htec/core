@@ -228,7 +228,7 @@ InferenceServer::Init()
   // If ROCM memory manager can't be created, just log error as the
   // server can still function properly
   if (!status.IsOk()) {
-    LOG_ERROR << status.Message();
+    LOG_INFO << "*** " << status.Message();
   }
 #endif  // TRITON_ENABLE_GPU
 
