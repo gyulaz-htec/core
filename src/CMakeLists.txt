@@ -454,10 +454,13 @@ if(${TRITON_ENABLE_ROCM})
   find_package(hip REQUIRED)
   find_package(HIP)
   enable_language(HIP)
+  find_library(CNMEM_LIBRARY NAMES cnmem PATHS ${CNMEM_PATH}/lib)
   target_link_libraries(
     triton-core
     PUBLIC
       hip::host
+    PRIVATE
+      ${CNMEM_LIBRARY}
   )
 endif() # TRITON_ENABLE_ROCM
 

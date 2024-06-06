@@ -290,9 +290,9 @@ if(NOT TRITON_CORE_HEADERS_ONLY)
   if(${TRITON_ENABLE_METRICS})
     set(TRITON_DEPENDS ${TRITON_DEPENDS} prometheus-cpp)
   endif() # TRITON_ENABLE_METRICS
-  if(${TRITON_ENABLE_GPU})
+  if(${TRITON_ENABLE_GPU} OR ${TRITON_ENABLE_ROCM})
     set(TRITON_DEPENDS ${TRITON_DEPENDS} cnmem)
-  endif() # TRITON_ENABLE_GPU
+  endif() # TRITON_ENABLE_GPU || TRITON_ENABLE_ROCM
 
   ExternalProject_Add(triton-core
     PREFIX triton-core
