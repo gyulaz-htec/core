@@ -283,7 +283,7 @@ target_include_directories(
     ${Protobuf_INCLUDE_DIRS}
 )
 
-if(${TRITON_ENABLE_GPU})
+if(${TRITON_ENABLE_GPU} OR ${TRITON_ENABLE_ROCM})
   target_include_directories(
     triton-core
     PRIVATE
