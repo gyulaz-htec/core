@@ -4,14 +4,18 @@
 import argparse
 import os
 import subprocess
+import multiprocessing.pool
 
 
-def hipify(hipify_perl_path, src_file_path, dst_file_path):
-    dir_name = os.path.dirname(dst_file_path)
+def hipify(paths):
+    hipify_perl_path = paths[0]
+    file_path = paths[1]
+    dir_name = os.path.dirname(file_path)
     if not os.path.exists(dir_name):
         os.makedirs(dir_name, exist_ok=True)
+    print("hipifying " + file_path)
     # Run hipify-perl first, capture output
-    s = subprocess.run([hipify_perl_path, "-roc", src_file_path], stdout=subprocess.PIPE, text=True, check=False).stdout
+    s = subprocess.run([hipify_perl_path, "-roc", file_path], stdout=subprocess.PIPE, text=True, check=False).stdout
 
     # Additional exact-match replacements.
     # Order matters for all of the following replacements, reglardless of appearing in logical sections.
@@ -193,7 +197,7 @@ def hipify(hipify_perl_path, src_file_path, dst_file_path):
 
     # We want hipfft, which needs hipDataType etc, but only do this for files that have "fft" in their names
     # And we do this last, undoing or fixing hipify mistakes.
-    if "fft" in src_file_path:
+    if "fft" in file_path:
         s = s.replace("rocblas_datatype", "hipDataType")
         s = s.replace("hipDataType_f32_c", "HIP_C_32F")
         s = s.replace("hipDataType_f32_r", "HIP_R_32F")
@@ -202,7 +206,7 @@ def hipify(hipify_perl_path, src_file_path, dst_file_path):
         s = s.replace("hipDataType_f16_c", "HIP_C_16F")
         s = s.replace("hipDataType_f16_r", "HIP_R_16F")
 
-    with open(dst_file_path, "w") as f:
+    with open(file_path, "w") as f:
         f.write(s)
 
 
@@ -211,10 +215,13 @@ if __name__ == "__main__":
     parser.add_argument("--hipify_perl", required=True)
     parser.add_argument("--input_folder", "-i", required=True)
     args = parser.parse_args()
+    paths = []
     for root, dirs, files in os.walk(args.input_folder):
         for file in files:
             if file.endswith((".cc", ".h", ".c", ".cpp", ".hpp", ".cu")):
+                print(f"root: {root}, file: {file}")
                 path = os.path.join(root, file)
-                print("hipifying " + path)
-                hipify(args.hipify_perl, path, path)
+                paths.append((args.hipify_perl, path))
+    with multiprocessing.pool.ThreadPool(processes=16) as p:
+        p.map(hipify, paths)
 
