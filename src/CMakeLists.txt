@@ -236,6 +236,30 @@ add_library(
   ${SERVER_SRCS} ${SERVER_HDRS}
 )
 
+if(${TRITON_ENABLE_ROCM})
+  if (NOT TRITON_HIPIFY_PERL)
+    find_path(HIPIFY_PERL_PATH
+      NAMES hipify-perl
+      HINTS
+      ${TRITON_BUILD_ROCM_HOME}/bin
+      ${TRITON_BUILD_ROCM_HOME}/hip/bin)
+    if (HIPIFY_PERL_PATH-NOTFOUND)
+      MESSAGE(FATAL_ERROR "hipify-perl not found")
+    endif()
+    set(TRITON_HIPIFY_PERL ${HIPIFY_PERL_PATH}/hipify-perl)
+  endif() #TRITON_HIPIFY_PERL
+
+  set(HIPIFY_TOOL ${PROJECT_SOURCE_DIR}/amd_hipify.py)
+  find_package(Python3 COMPONENTS Interpreter REQUIRED)
+  add_custom_target(
+    hipify_step ALL
+    COMMAND Python3::Interpreter ${HIPIFY_TOOL} --hipify_perl ${TRITON_HIPIFY_PERL} -i ${PROJECT_SOURCE_DIR}/../
+    DEPENDS ${HIPIFY_TOOL}
+    COMMENT "Hipifying core"
+  )
+  add_dependencies(triton-core hipify_step)
+endif()
+
 add_library(
   TritonCore::triton-core ALIAS triton-core
 )

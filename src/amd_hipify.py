@@ -209,8 +209,12 @@ def hipify(hipify_perl_path, src_file_path, dst_file_path):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--hipify_perl", required=True)
-    parser.add_argument("--output", "-o", help="output file")
-    parser.add_argument("src", help="src")
+    parser.add_argument("--input_folder", "-i", required=True)
     args = parser.parse_args()
-    print("hipifying "+ str(args.src))
-    hipify(args.hipify_perl, args.src, args.output)
+    for root, dirs, files in os.walk(args.input_folder):
+        for file in files:
+            if file.endswith((".cc", ".h", ".c", ".cpp", ".hpp", ".cu")):
+                path = os.path.join(root, file)
+                print("hipifying " + path)
+                hipify(args.hipify_perl, path, path)
+
